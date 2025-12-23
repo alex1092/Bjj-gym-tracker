@@ -20,6 +20,11 @@ h1 {
   text-align: center;
 }
 
+h2 {
+  color: #1a1a2e;
+  margin-bottom: 0.5rem;
+}
+
 /* Buttons */
 .btn {
   display: block;
@@ -131,6 +136,11 @@ h1 {
   margin-top: 2rem;
 }
 
+.instruction {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
 .auth-links {
   margin-top: 2rem;
   padding-top: 2rem;
@@ -146,6 +156,13 @@ h1 {
   font-size: 5rem;
   color: #28a745;
   margin-bottom: 1rem;
+}
+
+.gym-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.5rem;
 }
 
 .success-message {
@@ -207,17 +224,19 @@ h1 {
   background-color: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-/* QR Scanner */
-.qr-scanner-container {
-  margin: 2rem 0;
+.attendance-gym {
+  font-weight: 600;
+  color: #1a1a2e;
 }
 
-.scanning-text {
-  text-align: center;
+.attendance-date {
+  font-size: 0.9rem;
   color: #666;
-  margin-top: 1rem;
 }
 
 /* Check-in page */
@@ -228,4 +247,19 @@ h1 {
 .checkin-page p {
   color: #666;
   margin-bottom: 1rem;
+}
+
+.gym-info {
+  background-color: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.gym-info h2 {
+  margin: 0 0 0.5rem 0;
+}
+
+.gym-info p {
+  margin: 0;
 }

@@ -17,10 +17,8 @@ export function Home() {
       {user ? (
         <div className="user-section">
           <p>Welcome, {user.user_metadata?.full_name || user.email}!</p>
-          <button onClick={() => navigate('/checkin')} className="btn btn-primary">
-            Scan QR to Check In
-          </button>
-          <button onClick={() => navigate('/history')} className="btn btn-secondary">
+          <p className="instruction">Scan your gym's QR code with your phone camera to check in</p>
+          <button onClick={() => navigate('/history')} className="btn btn-primary">
             View Attendance History
           </button>
           <button onClick={handleSignOut} className="btn btn-outline">
@@ -29,10 +27,7 @@ export function Home() {
         </div>
       ) : (
         <div className="auth-section">
-          <p>Scan the gym's QR code to check in for class</p>
-          <button onClick={() => navigate('/checkin')} className="btn btn-primary">
-            Scan QR Code
-          </button>
+          <p>Scan your gym's QR code with your phone camera to check in for class</p>
           <div className="auth-links">
             <p>Already have an account?</p>
             <button onClick={() => navigate('/login')} className="btn btn-secondary">

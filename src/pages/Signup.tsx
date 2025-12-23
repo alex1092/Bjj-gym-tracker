@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export function Signup() {
@@ -10,6 +10,8 @@ export function Signup() {
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const returnTo = searchParams.get('returnTo')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +24,7 @@ export function Signup() {
       setError(error.message)
       setLoading(false)
     } else {
-      navigate('/')
+      navigate(returnTo || '/')
     }
   }
 
@@ -72,7 +74,7 @@ export function Signup() {
       </form>
 
       <p className="auth-switch">
-        Already have an account? <Link to="/login">Sign in</Link>
+        Already have an account? <Link to={`/login${returnTo ? `?returnTo=${returnTo}` : ''}`}>Sign in</Link>
       </p>
       <Link to="/" className="back-link">Back to Home</Link>
     </div>

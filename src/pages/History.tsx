@@ -6,6 +6,15 @@ import { supabase } from '../lib/supabase'
 interface AttendanceRecord {
   id: string
   checked_in_at: string
+  gyms: {
+    name: string
+  } | null
+}
+
+interface RawAttendanceRecord {
+  id: string
+  checked_in_at: string
+  gyms: { name: string } | { name: string }[] | null
 }
 
 export function History() {
@@ -25,12 +34,16 @@ export function History() {
 
       const { data, error } = await supabase
         .from('attendance')
-        .select('id, checked_in_at')
+        .select('id, checked_in_at, gyms(name)')
         .eq('user_id', user.id)
         .order('checked_in_at', { ascending: false })
 
       if (!error && data) {
-        setRecords(data)
+        const normalized = (data as RawAttendanceRecord[]).map((record) => ({
+          ...record,
+          gyms: Array.isArray(record.gyms) ? record.gyms[0] : record.gyms,
+        }))
+        setRecords(normalized)
       }
       setLoadingRecords(false)
     }
@@ -66,14 +79,15 @@ export function History() {
       <h1>Attendance History</h1>
 
       {records.length === 0 ? (
-        <p className="no-records">No check-ins yet. Scan the QR code to record your first class!</p>
+        <p className="no-records">No check-ins yet. Scan a gym's QR code to record your first class!</p>
       ) : (
         <>
           <p className="total-count">{records.length} total classes</p>
           <ul className="attendance-list">
             {records.map((record) => (
               <li key={record.id} className="attendance-item">
-                {formatDate(record.checked_in_at)}
+                <span className="attendance-gym">{record.gyms?.name || 'Unknown Gym'}</span>
+                <span className="attendance-date">{formatDate(record.checked_in_at)}</span>
               </li>
             ))}
           </ul>
