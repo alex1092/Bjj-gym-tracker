@@ -1,9 +1,27 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 export function Home() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const [isGymOwner, setIsGymOwner] = useState(false)
+
+  useEffect(() => {
+    const checkGymOwner = async () => {
+      if (!user) return
+
+      const { count } = await supabase
+        .from('gyms')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user.id)
+
+      setIsGymOwner((count || 0) > 0)
+    }
+
+    checkGymOwner()
+  }, [user])
 
   const handleSignOut = async () => {
     await signOut()
@@ -21,6 +39,11 @@ export function Home() {
           <button onClick={() => navigate('/history')} className="btn btn-primary">
             View Attendance History
           </button>
+          {isGymOwner && (
+            <button onClick={() => navigate('/admin')} className="btn btn-secondary">
+              Admin Dashboard
+            </button>
+          )}
           <button onClick={handleSignOut} className="btn btn-outline">
             Sign Out
           </button>

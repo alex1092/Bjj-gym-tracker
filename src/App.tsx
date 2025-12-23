@@ -6,6 +6,7 @@ import { Signup } from './pages/Signup'
 import { CheckIn } from './pages/CheckIn'
 import { Success } from './pages/Success'
 import { History } from './pages/History'
+import { Admin } from './pages/Admin'
 import './App.css'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Route path="/checkin/:gymSlug" element={<CheckIn />} />
             <Route path="/success/:gymSlug" element={<Success />} />
             <Route path="/history" element={<History />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </div>
       </Router>
