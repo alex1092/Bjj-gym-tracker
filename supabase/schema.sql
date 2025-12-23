@@ -15,8 +15,17 @@ CREATE TABLE IF NOT EXISTS public.gyms (
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   address TEXT,
-  owner_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create gym_admins junction table (supports multiple admins per gym)
+CREATE TABLE IF NOT EXISTS public.gym_admins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  gym_id UUID NOT NULL REFERENCES public.gyms(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(gym_id, user_id)
 );
 
 -- Create attendance table
@@ -32,11 +41,13 @@ CREATE INDEX IF NOT EXISTS attendance_user_id_idx ON public.attendance(user_id);
 CREATE INDEX IF NOT EXISTS attendance_gym_id_idx ON public.attendance(gym_id);
 CREATE INDEX IF NOT EXISTS attendance_checked_in_at_idx ON public.attendance(checked_in_at DESC);
 CREATE INDEX IF NOT EXISTS gyms_slug_idx ON public.gyms(slug);
-CREATE INDEX IF NOT EXISTS gyms_owner_id_idx ON public.gyms(owner_id);
+CREATE INDEX IF NOT EXISTS gym_admins_gym_id_idx ON public.gym_admins(gym_id);
+CREATE INDEX IF NOT EXISTS gym_admins_user_id_idx ON public.gym_admins(user_id);
 
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gyms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gym_admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
@@ -55,15 +66,15 @@ CREATE POLICY "Users can insert their own profile"
   FOR INSERT
   WITH CHECK (auth.uid() = id);
 
--- Gym owners can view profiles of users who attended their gym
-CREATE POLICY "Gym owners can view member profiles"
+-- Gym admins can view profiles of users who attended their gym
+CREATE POLICY "Gym admins can view member profiles"
   ON public.profiles
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.gyms g
-      JOIN public.attendance a ON a.gym_id = g.id
-      WHERE g.owner_id = auth.uid()
+      SELECT 1 FROM public.gym_admins ga
+      JOIN public.attendance a ON a.gym_id = ga.gym_id
+      WHERE ga.user_id = auth.uid()
       AND a.user_id = profiles.id
     )
   );
@@ -74,11 +85,11 @@ CREATE POLICY "Anyone can view gyms"
   FOR SELECT
   USING (true);
 
--- Gym owners can update their own gyms
-CREATE POLICY "Owners can update their gyms"
-  ON public.gyms
-  FOR UPDATE
-  USING (owner_id = auth.uid());
+-- Gym admins policies
+CREATE POLICY "Users can view their gym admin roles"
+  ON public.gym_admins
+  FOR SELECT
+  USING (user_id = auth.uid());
 
 -- Attendance policies
 CREATE POLICY "Users can view their own attendance"
@@ -91,15 +102,15 @@ CREATE POLICY "Users can insert their own attendance"
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
--- Gym owners can view attendance at their gyms
-CREATE POLICY "Gym owners can view attendance"
+-- Gym admins can view attendance at their gyms
+CREATE POLICY "Gym admins can view attendance"
   ON public.attendance
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.gyms
-      WHERE gyms.id = attendance.gym_id
-      AND gyms.owner_id = auth.uid()
+      SELECT 1 FROM public.gym_admins
+      WHERE gym_admins.gym_id = attendance.gym_id
+      AND gym_admins.user_id = auth.uid()
     )
   );
 
@@ -122,6 +133,3 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Insert a sample gym (replace with your actual gym)
--- INSERT INTO public.gyms (name, slug, address, owner_id) VALUES ('My BJJ Gym', 'my-bjj-gym', '123 Main St', 'your-user-id');

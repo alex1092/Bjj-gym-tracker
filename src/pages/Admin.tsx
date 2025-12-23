@@ -43,14 +43,18 @@ export function Admin() {
     const fetchGyms = async () => {
       if (!user) return
 
+      // Get gyms where user is an admin
       const { data, error } = await supabase
-        .from('gyms')
-        .select('id, name, slug')
-        .eq('owner_id', user.id)
+        .from('gym_admins')
+        .select('gyms(id, name, slug)')
+        .eq('user_id', user.id)
 
       if (!error && data && data.length > 0) {
-        setGyms(data)
-        setSelectedGym(data[0])
+        const gymList = data
+          .map((item) => item.gyms as unknown as Gym)
+          .filter((gym): gym is Gym => gym !== null)
+        setGyms(gymList)
+        setSelectedGym(gymList[0])
       }
       setLoading(false)
     }
@@ -152,8 +156,8 @@ export function Admin() {
       <div className="page admin-page">
         <h1>Admin Dashboard</h1>
         <div className="no-gyms">
-          <p>You don't own any gyms yet.</p>
-          <p>Contact support to set up your gym.</p>
+          <p>You're not an admin of any gyms yet.</p>
+          <p>Contact the gym owner to get admin access.</p>
         </div>
         <Link to="/" className="back-link">Back to Home</Link>
       </div>

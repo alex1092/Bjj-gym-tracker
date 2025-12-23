@@ -6,21 +6,21 @@ import { supabase } from '../lib/supabase'
 export function Home() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
-  const [isGymOwner, setIsGymOwner] = useState(false)
+  const [isGymAdmin, setIsGymAdmin] = useState(false)
 
   useEffect(() => {
-    const checkGymOwner = async () => {
+    const checkGymAdmin = async () => {
       if (!user) return
 
       const { count } = await supabase
-        .from('gyms')
+        .from('gym_admins')
         .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user.id)
+        .eq('user_id', user.id)
 
-      setIsGymOwner((count || 0) > 0)
+      setIsGymAdmin((count || 0) > 0)
     }
 
-    checkGymOwner()
+    checkGymAdmin()
   }, [user])
 
   const handleSignOut = async () => {
@@ -39,7 +39,7 @@ export function Home() {
           <button onClick={() => navigate('/history')} className="btn btn-primary">
             View Attendance History
           </button>
-          {isGymOwner && (
+          {isGymAdmin && (
             <button onClick={() => navigate('/admin')} className="btn btn-secondary">
               Admin Dashboard
             </button>
